@@ -1,0 +1,40 @@
+#!/bin/bash
+
+echo "Generating directory..."
+mkdir -p data data/dev data/prod data/postgres data/frpc data/ssh
+
+echo "Generating authorized_keys..."
+touch data/ssh/authorized_keys
+
+echo "Generating frpc.toml..."
+touch data/frpc/frpc.toml
+
+echo "Generating frpc.toml content..."
+cat > data/frpc/frpc.toml <<EOF
+[common]
+server_addr = "85.31.224.xxx"
+server_port = 7000
+transport.tcp_mux = true
+transport.pool_count = 5
+transport.tls.enable = true
+
+auth_token = ""
+
+[ssh-cld-dkr-staging-hipmi.wibudev.com]
+type = tcp
+local_ip = hipmi-dev
+local_port = 22
+remote_port = 5102
+
+[postgres-cld-dkr-staging-hipmi.wibudev.com]
+type = tcp
+local_ip = hipmi-dev
+local_port = 5432
+remote_port = 5202
+
+[cld-dkr-staging-hipmi.wibudev.com]
+type = http
+local_ip = hipmi-prod
+local_port = 3000
+custom_domains = "cld-dkr-staging-hipmi.wibudev.com"
+EOF
