@@ -179,8 +179,9 @@ const ServerApp = new Elysia()
     });
 
     if (path) {
-      // HTTP redirect ke tujuan
-      return Response.redirect(path.to, 302);
+      // HTTP redirect ke tujuan (tambah https:// jika belum ada)
+      const target = /^https?:\/\//.test(path.to) ? path.to : `https://${path.to}`;
+      return Response.redirect(target, 302);
     }
 
     return new Response("Path not found", { status: 404 });

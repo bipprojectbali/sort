@@ -626,7 +626,7 @@ export default function Home() {
                                                     </Table.Td>
                                                     <Table.Td>
                                                         <Anchor
-                                                            href={p.to}
+                                                            href={p.to.match(/^https?:\/\//) ? p.to : `https://${p.to}`}
                                                             target="_blank"
                                                             size="sm"
                                                             style={{
