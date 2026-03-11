@@ -1,13 +1,16 @@
 import {
     ActionIcon,
     Anchor,
+    Badge,
     Box,
     Button,
+    Card,
     Center,
     Container,
     CopyButton,
     Group,
     Loader,
+    Paper,
     PasswordInput,
     Stack,
     Table,
@@ -21,10 +24,15 @@ import {
     IconCheck,
     IconCopy,
     IconExternalLink,
-    IconLock,
-    IconLogout,
+    IconHeart,
+    IconHeartFilled,
+    IconLogout2,
+    IconMoodSmileBeam,
+    IconPaw,
     IconPlus,
-    IconTerminal2,
+    IconSparkles,
+    IconStar,
+    IconStarFilled,
     IconTrash,
 } from "@tabler/icons-react";
 import { removePass, savePass, state } from "../lib/state";
@@ -35,68 +43,53 @@ interface Path {
     to: string;
 }
 
-// --- Cyberpunk style tokens ---
-const CYAN = "#00f0ff";
-const MAGENTA = "#ff2a6d";
-const YELLOW = "#f5e642";
-const DARK_BG = "#0a0a0f";
-const PANEL_BG = "#0d0d18";
-const BORDER = "#1a1a2e";
+// --- Kawaii Pastel tokens ---
+const PINK = "#f8a4c8";
+const LAVENDER = "#c4b0f5";
+const MINT = "#a8e6cf";
+const SKY = "#a0d2f7";
+const PEACH = "#ffd4b8";
+const CREAM = "#fff8f0";
+const SOFT_WHITE = "#fefbff";
+const CARD_BG = "#fff5fa";
+const TABLE_BG = "#fdf2f8";
+const BORDER = "#f0d4e4";
+const TEXT_MAIN = "#6b4c6e";
+const TEXT_SUB = "#b08db5";
 
-const neonGlow = (color: string, intensity = 8) =>
-    `0 0 ${intensity}px ${color}44, 0 0 ${intensity * 2}px ${color}22`;
+const kawaiiCSS = `
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
 
-const neonText = (color: string) => ({
-    color,
-    textShadow: `0 0 7px ${color}88, 0 0 20px ${color}44`,
-});
-
-const cyberpunkInput: React.CSSProperties = {
-    background: "#06060c",
-    border: `1px solid ${BORDER}`,
-    color: CYAN,
-    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
-    fontSize: 13,
-};
-
-const cyberpunkPanel: React.CSSProperties = {
-    background: PANEL_BG,
-    border: `1px solid ${BORDER}`,
-    borderRadius: 4,
-    position: "relative",
-    overflow: "hidden",
-};
-
-const scanlineOverlay: React.CSSProperties = {
-    position: "absolute",
-    inset: 0,
-    background:
-        "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,240,255,0.015) 2px, rgba(0,240,255,0.015) 4px)",
-    pointerEvents: "none",
-    zIndex: 1,
-};
-
-// Glitch keyframes injected once
-const glitchCSS = `
-@keyframes cyber-glitch {
-  0%, 100% { text-shadow: 0 0 7px #00f0ff88, 0 0 20px #00f0ff44; }
-  20% { text-shadow: -2px 0 #ff2a6d, 2px 0 #00f0ff; }
-  40% { text-shadow: 2px 0 #ff2a6d, -2px 0 #00f0ff; }
-  60% { text-shadow: 0 0 7px #00f0ff88, 0 0 20px #00f0ff44; }
+@keyframes kawaii-float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
 }
-@keyframes cyber-flicker {
-  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; }
-  20%, 24%, 55% { opacity: 0.6; }
+@keyframes kawaii-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
 }
-@keyframes cyber-pulse {
-  0%, 100% { box-shadow: 0 0 5px #00f0ff44, 0 0 10px #00f0ff22; }
-  50% { box-shadow: 0 0 12px #00f0ff66, 0 0 24px #00f0ff33; }
+@keyframes kawaii-sparkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.85); }
 }
-@keyframes scanline-move {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
+@keyframes kawaii-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes kawaii-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 `;
+
+const kawaiiFont: React.CSSProperties = {
+    fontFamily: "'Nunito', 'Rounded Mplus 1c', sans-serif",
+};
+
+const softShadow = "0 4px 20px rgba(248,164,200,0.15), 0 2px 8px rgba(196,176,245,0.1)";
+const hoverShadow = "0 6px 28px rgba(248,164,200,0.25), 0 4px 12px rgba(196,176,245,0.15)";
 
 export default function Home() {
     const [from, setFrom] = useState("");
@@ -143,83 +136,100 @@ export default function Home() {
         fetchPaths();
     };
 
+    const pastelColors = [PINK, LAVENDER, MINT, SKY, PEACH];
+    const getRowAccent = (i: number) => pastelColors[i % pastelColors.length];
+
     // Login screen
     if (pass !== "Makuro_123") {
         return (
             <>
-                <style>{glitchCSS}</style>
+                <style>{kawaiiCSS}</style>
                 <Box
                     style={{
                         minHeight: "100vh",
-                        background: `radial-gradient(ellipse at 50% 0%, #0d0d2b 0%, ${DARK_BG} 70%)`,
+                        background: `linear-gradient(135deg, #fff0f6 0%, #f3e8ff 30%, #e8f4fd 60%, #fff0f6 100%)`,
+                        backgroundSize: "400% 400%",
+                        animation: "kawaii-gradient 12s ease infinite",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        ...kawaiiFont,
                     }}
                 >
-                    {/* Floating scanline */}
-                    <Box
-                        style={{
-                            position: "fixed",
-                            left: 0,
-                            right: 0,
-                            height: 2,
-                            background: `${CYAN}22`,
-                            animation: "scanline-move 4s linear infinite",
-                            zIndex: 999,
-                            pointerEvents: "none",
-                        }}
-                    />
+                    {/* Floating decorations */}
+                    {["*", "*", "*", "*", "*"].map((_, i) => (
+                        <Box
+                            key={i}
+                            style={{
+                                position: "fixed",
+                                top: `${15 + i * 18}%`,
+                                left: `${8 + i * 20}%`,
+                                animation: `kawaii-sparkle ${2 + i * 0.5}s ease-in-out infinite`,
+                                animationDelay: `${i * 0.3}s`,
+                                pointerEvents: "none",
+                                opacity: 0.3,
+                            }}
+                        >
+                            <IconStarFilled size={10 + i * 3} color={pastelColors[i]} />
+                        </Box>
+                    ))}
 
-                    <Box
-                        w={420}
-                        p="xl"
+                    <Card
+                        w={400}
+                        padding="xl"
+                        radius={24}
                         style={{
-                            ...cyberpunkPanel,
-                            boxShadow: neonGlow(CYAN, 12),
-                            animation: "cyber-pulse 3s ease-in-out infinite",
+                            background: SOFT_WHITE,
+                            boxShadow: softShadow,
+                            border: `2px solid ${BORDER}`,
+                            transition: "box-shadow 0.3s",
                         }}
                     >
-                        <div style={scanlineOverlay} />
-                        <Stack align="center" gap="lg" style={{ position: "relative", zIndex: 2 }}>
-                            {/* Icon */}
+                        <Stack align="center" gap="lg">
+                            {/* Kawaii mascot area */}
                             <Box
-                                p="sm"
                                 style={{
-                                    border: `2px solid ${CYAN}`,
-                                    borderRadius: 4,
-                                    boxShadow: neonGlow(CYAN),
+                                    animation: "kawaii-float 3s ease-in-out infinite",
                                 }}
                             >
-                                <IconLock size={28} color={CYAN} />
-                            </Box>
-
-                            {/* Title */}
-                            <Stack gap={2} align="center">
-                                <Text
-                                    size="xl"
-                                    fw={900}
-                                    ff="monospace"
+                                <Box
+                                    p="md"
                                     style={{
-                                        ...neonText(CYAN),
-                                        letterSpacing: 4,
-                                        textTransform: "uppercase",
-                                        animation: "cyber-glitch 5s ease-in-out infinite",
+                                        background: `linear-gradient(135deg, ${PINK}33, ${LAVENDER}33)`,
+                                        borderRadius: "50%",
+                                        width: 72,
+                                        height: 72,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
                                     }}
                                 >
-                                    ACCESS TERMINAL
+                                    <IconPaw size={36} color={PINK} stroke={1.8} />
+                                </Box>
+                            </Box>
+
+                            <Stack gap={4} align="center">
+                                <Text
+                                    size="xl"
+                                    fw={800}
+                                    style={{
+                                        ...kawaiiFont,
+                                        color: TEXT_MAIN,
+                                        letterSpacing: 0.5,
+                                    }}
+                                >
+                                    Selamat Datang~!
                                 </Text>
-                                <Text size="xs" ff="monospace" style={{ color: `${CYAN}88` }}>
-                                    // authentication required
+                                <Text size="sm" style={{ color: TEXT_SUB, ...kawaiiFont }}>
+                                    Masukkan password dulu ya~
                                 </Text>
                             </Stack>
 
-                            {/* Input */}
                             <PasswordInput
                                 w="100%"
-                                placeholder="ENTER_PASSKEY"
+                                placeholder="Kata sandi rahasia..."
                                 size="md"
-                                radius={2}
+                                radius={16}
                                 value={passInput}
                                 onChange={(e) => setPassInput(e.currentTarget.value)}
                                 onKeyDown={(e) => {
@@ -229,61 +239,70 @@ export default function Home() {
                                     }
                                 }}
                                 styles={{
-                                    input: cyberpunkInput,
-                                    innerInput: { color: CYAN, fontFamily: "monospace" },
+                                    input: {
+                                        background: CREAM,
+                                        border: `2px solid ${BORDER}`,
+                                        color: TEXT_MAIN,
+                                        ...kawaiiFont,
+                                        fontSize: 14,
+                                        "&:focus": {
+                                            borderColor: PINK,
+                                        },
+                                    },
                                 }}
                             />
 
-                            {/* Button */}
                             <Button
                                 fullWidth
                                 size="md"
-                                radius={2}
+                                radius={16}
                                 disabled={passInput.length <= 4}
                                 onClick={() => {
                                     savePass(passInput);
                                     setPassInput("");
                                 }}
-                                ff="monospace"
-                                fw={700}
+                                leftSection={<IconHeartFilled size={16} />}
                                 styles={{
                                     root: {
-                                        background: `linear-gradient(135deg, ${CYAN}22, ${MAGENTA}22)`,
-                                        border: `1px solid ${CYAN}`,
-                                        color: CYAN,
-                                        textTransform: "uppercase",
-                                        letterSpacing: 3,
-                                        transition: "all 0.2s",
+                                        background: `linear-gradient(135deg, ${PINK}, ${LAVENDER})`,
+                                        border: "none",
+                                        color: "#fff",
+                                        fontWeight: 700,
+                                        ...kawaiiFont,
+                                        fontSize: 15,
+                                        transition: "all 0.3s",
                                         "&:hover": {
-                                            background: `${CYAN}33`,
-                                            boxShadow: neonGlow(CYAN, 15),
+                                            transform: "translateY(-1px)",
+                                            boxShadow: hoverShadow,
                                         },
                                         "&:disabled": {
-                                            background: "#06060c",
-                                            borderColor: BORDER,
-                                            color: "#333",
+                                            background: "#e8dce8",
+                                            color: "#c0b0c0",
                                         },
                                     },
                                 }}
                             >
-                                AUTHENTICATE
+                                Masuk~!
                             </Button>
 
-                            {/* Decorative bottom */}
-                            <Group gap={4}>
-                                {[...Array(20)].map((_, i) => (
+                            {/* Decorative dots */}
+                            <Group gap={6} justify="center">
+                                {pastelColors.map((c, i) => (
                                     <Box
                                         key={i}
-                                        w={i % 3 === 0 ? 16 : 8}
-                                        h={2}
+                                        w={6}
+                                        h={6}
                                         style={{
-                                            background: i % 5 === 0 ? MAGENTA : `${CYAN}44`,
+                                            borderRadius: "50%",
+                                            background: c,
+                                            animation: `kawaii-bounce 1.5s ease-in-out infinite`,
+                                            animationDelay: `${i * 0.15}s`,
                                         }}
                                     />
                                 ))}
                             </Group>
                         </Stack>
-                    </Box>
+                    </Card>
                 </Box>
             </>
         );
@@ -292,419 +311,457 @@ export default function Home() {
     // Main dashboard
     return (
         <>
-            <style>{glitchCSS}</style>
+            <style>{kawaiiCSS}</style>
             <Box
                 style={{
                     minHeight: "100vh",
-                    background: `radial-gradient(ellipse at 30% 0%, #0d0d2b 0%, ${DARK_BG} 50%)`,
-                    padding: "24px 0",
+                    background: `linear-gradient(180deg, #fff0f6 0%, #f8f0ff 40%, #f0f4ff 70%, #fff5f9 100%)`,
+                    padding: "28px 0",
+                    ...kawaiiFont,
                 }}
             >
-                {/* Moving scanline */}
-                <Box
-                    style={{
-                        position: "fixed",
-                        left: 0,
-                        right: 0,
-                        height: 1,
-                        background: `${CYAN}15`,
-                        animation: "scanline-move 6s linear infinite",
-                        zIndex: 999,
-                        pointerEvents: "none",
-                    }}
-                />
-
                 <Container size="lg">
                     <Stack gap="md">
                         {/* Header */}
-                        <Group justify="space-between" align="center" py="sm">
-                            <Group gap="sm">
-                                <IconTerminal2 size={24} color={CYAN} />
-                                <Text
-                                    size="lg"
-                                    fw={900}
-                                    ff="monospace"
-                                    style={{
-                                        ...neonText(CYAN),
-                                        letterSpacing: 3,
-                                        textTransform: "uppercase",
-                                        animation: "cyber-flicker 4s linear infinite",
+                        <Paper
+                            p="md"
+                            radius={20}
+                            style={{
+                                background: SOFT_WHITE,
+                                boxShadow: softShadow,
+                                border: `2px solid ${BORDER}`,
+                            }}
+                        >
+                            <Group justify="space-between" align="center">
+                                <Group gap="sm">
+                                    <Box
+                                        style={{ animation: "kawaii-wiggle 2s ease-in-out infinite" }}
+                                    >
+                                        <IconPaw size={24} color={PINK} stroke={1.8} />
+                                    </Box>
+                                    <Text
+                                        size="lg"
+                                        fw={800}
+                                        style={{
+                                            color: TEXT_MAIN,
+                                            ...kawaiiFont,
+                                        }}
+                                    >
+                                        Path Manager
+                                    </Text>
+                                    <IconSparkles
+                                        size={16}
+                                        color={LAVENDER}
+                                        style={{ animation: "kawaii-sparkle 2s ease-in-out infinite" }}
+                                    />
+                                </Group>
+
+                                <Button
+                                    variant="light"
+                                    size="xs"
+                                    radius={12}
+                                    leftSection={<IconLogout2 size={14} />}
+                                    onClick={removePass}
+                                    styles={{
+                                        root: {
+                                            background: `${PINK}18`,
+                                            color: PINK,
+                                            border: `1.5px solid ${PINK}44`,
+                                            fontWeight: 700,
+                                            ...kawaiiFont,
+                                            "&:hover": {
+                                                background: `${PINK}28`,
+                                            },
+                                        },
                                     }}
                                 >
-                                    PATH::MANAGER
-                                </Text>
-                                <Box
-                                    w={8}
-                                    h={8}
-                                    style={{
-                                        borderRadius: "50%",
-                                        background: "#00ff41",
-                                        boxShadow: "0 0 6px #00ff41, 0 0 12px #00ff4166",
-                                    }}
-                                />
-                                <Text size="xs" ff="monospace" c="dimmed">
-                                    ONLINE
+                                    Keluar~
+                                </Button>
+                            </Group>
+                        </Paper>
+
+                        {/* Create form */}
+                        <Paper
+                            p="lg"
+                            radius={20}
+                            style={{
+                                background: SOFT_WHITE,
+                                boxShadow: softShadow,
+                                border: `2px solid ${BORDER}`,
+                            }}
+                        >
+                            <Group gap="xs" mb="sm">
+                                <IconStar size={16} color={PEACH} />
+                                <Text fw={700} size="sm" style={{ color: TEXT_MAIN, ...kawaiiFont }}>
+                                    Buat Path Baru~!
                                 </Text>
                             </Group>
 
-                            <Button
-                                variant="subtle"
-                                size="xs"
-                                radius={2}
-                                leftSection={<IconLogout size={14} />}
-                                onClick={removePass}
-                                ff="monospace"
-                                styles={{
-                                    root: {
-                                        color: MAGENTA,
-                                        border: `1px solid ${MAGENTA}44`,
-                                        textTransform: "uppercase",
-                                        letterSpacing: 1,
-                                        "&:hover": {
-                                            background: `${MAGENTA}22`,
+                            <Group align="end" grow>
+                                <TextInput
+                                    label={
+                                        <Text size="xs" fw={700} style={{ color: TEXT_SUB, ...kawaiiFont }}>
+                                            Dari
+                                        </Text>
+                                    }
+                                    placeholder="contoh: link-ku"
+                                    radius={14}
+                                    value={from}
+                                    onChange={(e) => setFrom(e.currentTarget.value)}
+                                    styles={{
+                                        input: {
+                                            background: CREAM,
+                                            border: `2px solid ${BORDER}`,
+                                            color: TEXT_MAIN,
+                                            ...kawaiiFont,
+                                            "&:focus": { borderColor: LAVENDER },
                                         },
-                                    },
+                                    }}
+                                />
+                                <TextInput
+                                    label={
+                                        <Text size="xs" fw={700} style={{ color: TEXT_SUB, ...kawaiiFont }}>
+                                            Tujuan
+                                        </Text>
+                                    }
+                                    placeholder="https://example.com/tujuan"
+                                    radius={14}
+                                    value={to}
+                                    onChange={(e) => setTo(e.currentTarget.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && createPath()}
+                                    styles={{
+                                        input: {
+                                            background: CREAM,
+                                            border: `2px solid ${BORDER}`,
+                                            color: TEXT_MAIN,
+                                            ...kawaiiFont,
+                                            "&:focus": { borderColor: LAVENDER },
+                                        },
+                                    }}
+                                />
+                                <Button
+                                    leftSection={<IconPlus size={15} />}
+                                    radius={14}
+                                    onClick={createPath}
+                                    disabled={!from.trim() || !to.trim()}
+                                    style={{ flexGrow: 0, flexBasis: "auto" }}
+                                    styles={{
+                                        root: {
+                                            background: `linear-gradient(135deg, ${MINT}, ${SKY})`,
+                                            border: "none",
+                                            color: "#fff",
+                                            fontWeight: 700,
+                                            ...kawaiiFont,
+                                            transition: "all 0.3s",
+                                            "&:hover": {
+                                                transform: "translateY(-1px)",
+                                                boxShadow: `0 4px 16px ${MINT}66`,
+                                            },
+                                            "&:disabled": {
+                                                background: "#e0dce0",
+                                                color: "#bbb",
+                                            },
+                                        },
+                                    }}
+                                >
+                                    Buat~!
+                                </Button>
+                            </Group>
+                        </Paper>
+
+                        {/* Table */}
+                        <Paper
+                            radius={20}
+                            style={{
+                                background: SOFT_WHITE,
+                                boxShadow: softShadow,
+                                border: `2px solid ${BORDER}`,
+                                overflow: "hidden",
+                            }}
+                        >
+                            {/* Table title bar */}
+                            <Group
+                                px="lg"
+                                py="sm"
+                                justify="space-between"
+                                style={{
+                                    background: `linear-gradient(135deg, ${PINK}15, ${LAVENDER}15)`,
+                                    borderBottom: `2px solid ${BORDER}`,
                                 }}
                             >
-                                DISCONNECT
-                            </Button>
-                        </Group>
-
-                        {/* Decorative line */}
-                        <Box
-                            h={1}
-                            style={{
-                                background: `linear-gradient(90deg, ${CYAN}00, ${CYAN}66, ${MAGENTA}66, ${MAGENTA}00)`,
-                            }}
-                        />
-
-                        {/* Create form */}
-                        <Box p="md" style={cyberpunkPanel}>
-                            <div style={scanlineOverlay} />
-                            <Stack gap="sm" style={{ position: "relative", zIndex: 2 }}>
                                 <Group gap="xs">
-                                    <Text size="xs" ff="monospace" style={neonText(YELLOW)}>
-                                        {">"} NEW_PATH
+                                    <IconMoodSmileBeam size={18} color={PINK} />
+                                    <Text fw={700} size="sm" style={{ color: TEXT_MAIN, ...kawaiiFont }}>
+                                        Semua Path
                                     </Text>
-                                    <Box flex={1} h={1} style={{ background: `${YELLOW}22` }} />
                                 </Group>
+                                <Badge
+                                    radius={10}
+                                    size="sm"
+                                    styles={{
+                                        root: {
+                                            background: `${LAVENDER}33`,
+                                            color: LAVENDER,
+                                            fontWeight: 700,
+                                            border: `1.5px solid ${LAVENDER}55`,
+                                            ...kawaiiFont,
+                                        },
+                                    }}
+                                >
+                                    {paths.length} buah
+                                </Badge>
+                            </Group>
 
-                                <Group align="end" grow>
-                                    <TextInput
-                                        label={
-                                            <Text size="xs" ff="monospace" style={{ color: `${CYAN}88` }}>
-                                                FROM://
-                                            </Text>
-                                        }
-                                        placeholder="slug-path"
-                                        radius={2}
-                                        value={from}
-                                        onChange={(e) => setFrom(e.currentTarget.value)}
-                                        styles={{ input: cyberpunkInput }}
-                                    />
-                                    <TextInput
-                                        label={
-                                            <Text size="xs" ff="monospace" style={{ color: `${CYAN}88` }}>
-                                                TARGET://
-                                            </Text>
-                                        }
-                                        placeholder="https://destination.url"
-                                        radius={2}
-                                        value={to}
-                                        onChange={(e) => setTo(e.currentTarget.value)}
-                                        onKeyDown={(e) => e.key === "Enter" && createPath()}
-                                        styles={{ input: cyberpunkInput }}
-                                    />
-                                    <Button
-                                        leftSection={<IconPlus size={14} />}
-                                        radius={2}
-                                        onClick={createPath}
-                                        disabled={!from.trim() || !to.trim()}
-                                        ff="monospace"
-                                        size="sm"
-                                        style={{ flexGrow: 0, flexBasis: "auto" }}
+                            {loading ? (
+                                <Center p="xl">
+                                    <Group gap="sm">
+                                        <Loader size="xs" color={PINK} type="dots" />
+                                        <Text size="sm" style={{ color: TEXT_SUB, ...kawaiiFont }}>
+                                            Tunggu sebentar ya~...
+                                        </Text>
+                                    </Group>
+                                </Center>
+                            ) : paths.length === 0 ? (
+                                <Center p={40}>
+                                    <Stack align="center" gap="sm">
+                                        <Box style={{ animation: "kawaii-float 3s ease-in-out infinite" }}>
+                                            <IconHeart size={36} color={`${PINK}88`} stroke={1.5} />
+                                        </Box>
+                                        <Text size="sm" fw={600} style={{ color: TEXT_SUB, ...kawaiiFont }}>
+                                            Belum ada path nih~
+                                        </Text>
+                                        <Text size="xs" style={{ color: `${TEXT_SUB}88`, ...kawaiiFont }}>
+                                            Yuk buat yang pertama di atas!
+                                        </Text>
+                                    </Stack>
+                                </Center>
+                            ) : (
+                                <Table.ScrollContainer minWidth={600}>
+                                    <Table
+                                        verticalSpacing="sm"
+                                        horizontalSpacing="md"
                                         styles={{
-                                            root: {
-                                                background: `${CYAN}22`,
-                                                border: `1px solid ${CYAN}88`,
-                                                color: CYAN,
+                                            th: {
+                                                ...kawaiiFont,
+                                                fontSize: 12,
+                                                fontWeight: 700,
+                                                color: TEXT_SUB,
                                                 textTransform: "uppercase",
                                                 letterSpacing: 1,
+                                                borderBottom: `2px solid ${BORDER}`,
+                                                background: "transparent",
+                                                padding: "12px 16px",
+                                            },
+                                            td: {
+                                                ...kawaiiFont,
+                                                fontSize: 14,
+                                                color: TEXT_MAIN,
+                                                borderBottom: `1.5px solid ${BORDER}`,
+                                                padding: "12px 16px",
+                                            },
+                                            tr: {
+                                                transition: "background 0.2s",
                                                 "&:hover": {
-                                                    background: `${CYAN}33`,
-                                                    boxShadow: neonGlow(CYAN),
-                                                },
-                                                "&:disabled": {
-                                                    background: "#06060c",
-                                                    borderColor: BORDER,
-                                                    color: "#333",
+                                                    background: `${PINK}08 !important`,
                                                 },
                                             },
                                         }}
                                     >
-                                        DEPLOY
-                                    </Button>
-                                </Group>
-                            </Stack>
-                        </Box>
-
-                        {/* Table */}
-                        <Box style={cyberpunkPanel}>
-                            <div style={scanlineOverlay} />
-                            <Box style={{ position: "relative", zIndex: 2 }}>
-                                {/* Table header bar */}
-                                <Group
-                                    px="md"
-                                    py="xs"
-                                    justify="space-between"
-                                    style={{ borderBottom: `1px solid ${BORDER}` }}
-                                >
-                                    <Group gap="xs">
-                                        <Text size="xs" ff="monospace" style={neonText(YELLOW)}>
-                                            {">"} PATH_REGISTRY
-                                        </Text>
-                                        <Box
-                                            px={6}
-                                            py={1}
-                                            style={{
-                                                background: `${MAGENTA}22`,
-                                                border: `1px solid ${MAGENTA}44`,
-                                                borderRadius: 2,
-                                            }}
-                                        >
-                                            <Text size="xs" ff="monospace" style={{ color: MAGENTA }}>
-                                                {paths.length}
-                                            </Text>
-                                        </Box>
-                                    </Group>
-                                    <Text size="xs" ff="monospace" style={{ color: "#333" }}>
-                                        v2.077
-                                    </Text>
-                                </Group>
-
-                                {loading ? (
-                                    <Center p="xl">
-                                        <Group gap="sm">
-                                            <Loader size="xs" color={CYAN} />
-                                            <Text size="xs" ff="monospace" style={{ color: `${CYAN}88` }}>
-                                                LOADING DATA STREAM...
-                                            </Text>
-                                        </Group>
-                                    </Center>
-                                ) : paths.length === 0 ? (
-                                    <Center p="xl">
-                                        <Stack align="center" gap="xs">
-                                            <Text
-                                                size="sm"
-                                                ff="monospace"
-                                                style={{ color: `${CYAN}44` }}
-                                            >
-                                                [ EMPTY REGISTRY ]
-                                            </Text>
-                                            <Text size="xs" ff="monospace" style={{ color: "#333" }}>
-                                                // deploy your first path above
-                                            </Text>
-                                        </Stack>
-                                    </Center>
-                                ) : (
-                                    <Table.ScrollContainer minWidth={600}>
-                                        <Table
-                                            verticalSpacing="xs"
-                                            horizontalSpacing="md"
-                                            styles={{
-                                                th: {
-                                                    fontFamily: "monospace",
-                                                    fontSize: 11,
-                                                    color: `${CYAN}66`,
-                                                    textTransform: "uppercase",
-                                                    letterSpacing: 2,
-                                                    borderBottom: `1px solid ${BORDER}`,
-                                                    padding: "10px 16px",
-                                                },
-                                                td: {
-                                                    fontFamily: "monospace",
-                                                    fontSize: 13,
-                                                    borderBottom: `1px solid ${BORDER}`,
-                                                    padding: "10px 16px",
-                                                },
-                                                tr: {
-                                                    transition: "background 0.15s",
-                                                    "&:hover": {
-                                                        background: `${CYAN}08 !important`,
-                                                    },
-                                                },
-                                            }}
-                                        >
-                                            <Table.Thead>
-                                                <Table.Tr>
-                                                    <Table.Th w={50}>IDX</Table.Th>
-                                                    <Table.Th>SOURCE</Table.Th>
-                                                    <Table.Th>DESTINATION</Table.Th>
-                                                    <Table.Th w={120} style={{ textAlign: "right" }}>
-                                                        CTRL
-                                                    </Table.Th>
-                                                </Table.Tr>
-                                            </Table.Thead>
-                                            <Table.Tbody>
-                                                {paths.map((p, i) => (
-                                                    <Table.Tr key={p.id}>
-                                                        <Table.Td>
+                                        <Table.Thead>
+                                            <Table.Tr>
+                                                <Table.Th w={50}>#</Table.Th>
+                                                <Table.Th>Dari</Table.Th>
+                                                <Table.Th>Tujuan</Table.Th>
+                                                <Table.Th w={120} style={{ textAlign: "right" }}>
+                                                    Aksi
+                                                </Table.Th>
+                                            </Table.Tr>
+                                        </Table.Thead>
+                                        <Table.Tbody>
+                                            {paths.map((p, i) => (
+                                                <Table.Tr key={p.id}>
+                                                    <Table.Td>
+                                                        <Box
+                                                            w={26}
+                                                            h={26}
+                                                            style={{
+                                                                borderRadius: "50%",
+                                                                background: `${getRowAccent(i)}33`,
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                            }}
+                                                        >
                                                             <Text
                                                                 size="xs"
-                                                                ff="monospace"
-                                                                style={{ color: "#444" }}
+                                                                fw={700}
+                                                                style={{ color: getRowAccent(i) }}
                                                             >
-                                                                {String(i + 1).padStart(2, "0")}
+                                                                {i + 1}
                                                             </Text>
-                                                        </Table.Td>
-                                                        <Table.Td>
-                                                            <Box
-                                                                display="inline-block"
-                                                                px={8}
-                                                                py={2}
-                                                                style={{
-                                                                    background: `${CYAN}11`,
-                                                                    border: `1px solid ${CYAN}33`,
-                                                                    borderRadius: 2,
-                                                                }}
-                                                            >
-                                                                <Text
-                                                                    size="xs"
-                                                                    ff="monospace"
-                                                                    style={neonText(CYAN)}
-                                                                >
-                                                                    /{p.from}
-                                                                </Text>
-                                                            </Box>
-                                                        </Table.Td>
-                                                        <Table.Td>
-                                                            <Anchor
-                                                                href={p.to}
-                                                                target="_blank"
-                                                                size="xs"
-                                                                ff="monospace"
-                                                                style={{
-                                                                    color: `${MAGENTA}cc`,
-                                                                    display: "inline-flex",
-                                                                    alignItems: "center",
-                                                                    gap: 6,
-                                                                    textDecoration: "none",
-                                                                    transition: "color 0.15s",
-                                                                }}
-                                                            >
-                                                                {p.to.length > 45
-                                                                    ? p.to.slice(0, 45) + "..."
-                                                                    : p.to}
-                                                                <IconExternalLink
-                                                                    size={12}
-                                                                    color={`${MAGENTA}88`}
+                                                        </Box>
+                                                    </Table.Td>
+                                                    <Table.Td>
+                                                        <Badge
+                                                            radius={10}
+                                                            size="md"
+                                                            leftSection={
+                                                                <IconStarFilled
+                                                                    size={10}
+                                                                    color={getRowAccent(i)}
                                                                 />
-                                                            </Anchor>
-                                                        </Table.Td>
-                                                        <Table.Td>
-                                                            <Group gap={6} justify="flex-end">
-                                                                <CopyButton
-                                                                    value={`${window.location.origin}/${p.from}`}
-                                                                >
-                                                                    {({ copied, copy }) => (
-                                                                        <Tooltip
-                                                                            label={
-                                                                                copied
-                                                                                    ? "COPIED!"
-                                                                                    : "COPY LINK"
-                                                                            }
-                                                                            withArrow
-                                                                            styles={{
-                                                                                tooltip: {
-                                                                                    fontFamily:
-                                                                                        "monospace",
-                                                                                    fontSize: 10,
-                                                                                    background: PANEL_BG,
-                                                                                    border: `1px solid ${BORDER}`,
-                                                                                    color: CYAN,
-                                                                                },
-                                                                            }}
-                                                                        >
-                                                                            <ActionIcon
-                                                                                variant="subtle"
-                                                                                size="sm"
-                                                                                onClick={copy}
-                                                                                style={{
-                                                                                    border: `1px solid ${copied ? "#00ff41" : CYAN}33`,
-                                                                                    color: copied
-                                                                                        ? "#00ff41"
-                                                                                        : CYAN,
-                                                                                    background: copied
-                                                                                        ? "#00ff4111"
-                                                                                        : "transparent",
-                                                                                }}
-                                                                            >
-                                                                                {copied ? (
-                                                                                    <IconCheck size={14} />
-                                                                                ) : (
-                                                                                    <IconCopy size={14} />
-                                                                                )}
-                                                                            </ActionIcon>
-                                                                        </Tooltip>
-                                                                    )}
-                                                                </CopyButton>
-                                                                <Tooltip
-                                                                    label="TERMINATE"
-                                                                    withArrow
-                                                                    styles={{
-                                                                        tooltip: {
-                                                                            fontFamily: "monospace",
-                                                                            fontSize: 10,
-                                                                            background: PANEL_BG,
-                                                                            border: `1px solid ${BORDER}`,
-                                                                            color: MAGENTA,
-                                                                        },
-                                                                    }}
-                                                                >
-                                                                    <ActionIcon
-                                                                        variant="subtle"
-                                                                        size="sm"
-                                                                        onClick={() => deletePath(p.id)}
-                                                                        style={{
-                                                                            border: `1px solid ${MAGENTA}33`,
-                                                                            color: MAGENTA,
+                                                            }
+                                                            styles={{
+                                                                root: {
+                                                                    background: `${getRowAccent(i)}22`,
+                                                                    color: TEXT_MAIN,
+                                                                    border: `1.5px solid ${getRowAccent(i)}55`,
+                                                                    fontWeight: 700,
+                                                                    ...kawaiiFont,
+                                                                },
+                                                            }}
+                                                        >
+                                                            /{p.from}
+                                                        </Badge>
+                                                    </Table.Td>
+                                                    <Table.Td>
+                                                        <Anchor
+                                                            href={p.to}
+                                                            target="_blank"
+                                                            size="sm"
+                                                            style={{
+                                                                color: LAVENDER,
+                                                                display: "inline-flex",
+                                                                alignItems: "center",
+                                                                gap: 5,
+                                                                textDecoration: "none",
+                                                                fontWeight: 600,
+                                                                ...kawaiiFont,
+                                                                transition: "color 0.2s",
+                                                            }}
+                                                        >
+                                                            {p.to.length > 45
+                                                                ? p.to.slice(0, 45) + "..."
+                                                                : p.to}
+                                                            <IconExternalLink
+                                                                size={13}
+                                                                color={`${LAVENDER}88`}
+                                                            />
+                                                        </Anchor>
+                                                    </Table.Td>
+                                                    <Table.Td>
+                                                        <Group gap={6} justify="flex-end">
+                                                            <CopyButton
+                                                                value={`${window.location.origin}/${p.from}`}
+                                                            >
+                                                                {({ copied, copy }) => (
+                                                                    <Tooltip
+                                                                        label={
+                                                                            copied
+                                                                                ? "Tersalin~!"
+                                                                                : "Salin link"
+                                                                        }
+                                                                        withArrow
+                                                                        radius={8}
+                                                                        styles={{
+                                                                            tooltip: {
+                                                                                ...kawaiiFont,
+                                                                                fontSize: 11,
+                                                                                fontWeight: 600,
+                                                                                background: SOFT_WHITE,
+                                                                                border: `1.5px solid ${BORDER}`,
+                                                                                color: TEXT_MAIN,
+                                                                                boxShadow: softShadow,
+                                                                            },
                                                                         }}
                                                                     >
-                                                                        <IconTrash size={14} />
-                                                                    </ActionIcon>
-                                                                </Tooltip>
-                                                            </Group>
-                                                        </Table.Td>
-                                                    </Table.Tr>
-                                                ))}
-                                            </Table.Tbody>
-                                        </Table>
-                                    </Table.ScrollContainer>
-                                )}
-                            </Box>
-                        </Box>
+                                                                        <ActionIcon
+                                                                            variant="subtle"
+                                                                            size="md"
+                                                                            radius={10}
+                                                                            onClick={copy}
+                                                                            style={{
+                                                                                background: copied
+                                                                                    ? `${MINT}33`
+                                                                                    : `${SKY}22`,
+                                                                                border: `1.5px solid ${copied ? MINT : SKY}55`,
+                                                                                color: copied
+                                                                                    ? MINT
+                                                                                    : SKY,
+                                                                                transition: "all 0.2s",
+                                                                            }}
+                                                                        >
+                                                                            {copied ? (
+                                                                                <IconCheck size={15} />
+                                                                            ) : (
+                                                                                <IconCopy size={15} />
+                                                                            )}
+                                                                        </ActionIcon>
+                                                                    </Tooltip>
+                                                                )}
+                                                            </CopyButton>
+                                                            <Tooltip
+                                                                label="Hapus"
+                                                                withArrow
+                                                                radius={8}
+                                                                styles={{
+                                                                    tooltip: {
+                                                                        ...kawaiiFont,
+                                                                        fontSize: 11,
+                                                                        fontWeight: 600,
+                                                                        background: SOFT_WHITE,
+                                                                        border: `1.5px solid ${BORDER}`,
+                                                                        color: TEXT_MAIN,
+                                                                        boxShadow: softShadow,
+                                                                    },
+                                                                }}
+                                                            >
+                                                                <ActionIcon
+                                                                    variant="subtle"
+                                                                    size="md"
+                                                                    radius={10}
+                                                                    onClick={() => deletePath(p.id)}
+                                                                    style={{
+                                                                        background: `${PINK}18`,
+                                                                        border: `1.5px solid ${PINK}44`,
+                                                                        color: PINK,
+                                                                        transition: "all 0.2s",
+                                                                    }}
+                                                                >
+                                                                    <IconTrash size={15} />
+                                                                </ActionIcon>
+                                                            </Tooltip>
+                                                        </Group>
+                                                    </Table.Td>
+                                                </Table.Tr>
+                                            ))}
+                                        </Table.Tbody>
+                                    </Table>
+                                </Table.ScrollContainer>
+                            )}
+                        </Paper>
 
                         {/* Footer */}
-                        <Group justify="center" gap="xs">
-                            {[...Array(30)].map((_, i) => (
-                                <Box
-                                    key={i}
-                                    w={i % 4 === 0 ? 20 : 6}
-                                    h={1}
-                                    style={{
-                                        background:
-                                            i % 7 === 0
-                                                ? MAGENTA
-                                                : i % 5 === 0
-                                                  ? YELLOW
-                                                  : `${CYAN}33`,
-                                    }}
-                                />
-                            ))}
-                        </Group>
-                        <Text ta="center" size="xs" ff="monospace" style={{ color: "#333" }}>
-                            SYS::PATH_MANAGER // {paths.length} REGISTERED NODES
-                        </Text>
+                        <Stack align="center" gap={6}>
+                            <Group gap={4} justify="center">
+                                {pastelColors.map((c, i) => (
+                                    <Box
+                                        key={i}
+                                        w={6}
+                                        h={6}
+                                        style={{
+                                            borderRadius: "50%",
+                                            background: c,
+                                            animation: `kawaii-bounce 1.5s ease-in-out infinite`,
+                                            animationDelay: `${i * 0.12}s`,
+                                        }}
+                                    />
+                                ))}
+                            </Group>
+                            <Text size="xs" fw={600} style={{ color: `${TEXT_SUB}88`, ...kawaiiFont }}>
+                                Total: {paths.length} path terdaftar~!
+                            </Text>
+                        </Stack>
                     </Stack>
                 </Container>
             </Box>
